@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Xml.XPath;
+using Newtonsoft.Json.Linq;
 using Scriban;
 using VirtoCommerce.Storefront.Model.Common;
 
@@ -445,6 +446,15 @@ namespace VirtoCommerce.LiquidThemeEngine.Filters
             return result;
         }
 
+        public static int DateDaysDifference(string date)
+        {
+            if (DateTime.TryParse(date, out var datetime))
+            {
+                return (DateTime.Now - datetime).Days;
+            }
+            return 0;
+        }
+
         /// <summary>
         /// Get the first element of the passed in array 
         /// 
@@ -731,6 +741,10 @@ namespace VirtoCommerce.LiquidThemeEngine.Filters
                 {
                     return Convert.ToInt32(match.Groups[1].Value);
                 }
+            }
+            else if (s is JValue json)
+            {
+                return ToNumber(json.Value.ToString());
             }
 
             return 0;

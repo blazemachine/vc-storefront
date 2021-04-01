@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using FluentValidation.AspNetCore;
@@ -30,6 +31,7 @@ using VirtoCommerce.Storefront.Caching.Redis;
 using VirtoCommerce.Storefront.DependencyInjection;
 using VirtoCommerce.Storefront.Domain;
 using VirtoCommerce.Storefront.Domain.Cart;
+using VirtoCommerce.Storefront.Domain.ImageProcessing;
 using VirtoCommerce.Storefront.Domain.Security;
 using VirtoCommerce.Storefront.Extensions;
 using VirtoCommerce.Storefront.Filters;
@@ -46,6 +48,7 @@ using VirtoCommerce.Storefront.Model.Common.Bus;
 using VirtoCommerce.Storefront.Model.Common.Events;
 using VirtoCommerce.Storefront.Model.Customer.Services;
 using VirtoCommerce.Storefront.Model.Features;
+using VirtoCommerce.Storefront.Model.Feedback;
 using VirtoCommerce.Storefront.Model.Inventory.Services;
 using VirtoCommerce.Storefront.Model.LinkList.Services;
 using VirtoCommerce.Storefront.Model.Marketing.Services;
@@ -120,6 +123,8 @@ namespace VirtoCommerce.Storefront
             services.AddTransient<ICartService, CartService>();
             services.AddTransient<AngularAntiforgeryCookieResultFilter>();
             services.AddTransient<AnonymousUserForStoreAuthorizationFilter>();
+            services.AddSingleton<IFeedbackItemFactory, FeedbackItemFactory>(provider => new FeedbackItemFactory(Configuration.GetSection("FeedbackServices")));
+            services.AddSingleton<IFeedbackItemService<FeedbackItem, (HttpStatusCode StatusCode, string Content)>, HttpFeedbackItemService>();
 
             //Register events framework dependencies
             services.AddSingleton(new InProcessBus());
@@ -364,6 +369,17 @@ namespace VirtoCommerce.Storefront
 
             services.AddResponseCompression();
 
+            var imageProcessorOptions = new ImageProcessorOptions();
+            Configuration.GetSection("VirtoCommerce:ImageProcessor").Bind(imageProcessorOptions);
+            if (imageProcessorOptions.Provider.EqualsInvariant("Imagekit"))
+            {
+                services.AddSingleton<IImageProcessor, ImagekitImageProcessor>();
+                services.Configure<ImageProcessorOptions>(Configuration.GetSection("VirtoCommerce:ImageProcessor"));
+            }
+            else
+            {
+                services.AddSingleton<IImageProcessor, DefaultImageProcessor>();
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
