@@ -134,7 +134,10 @@ namespace VirtoCommerce.Storefront
             services.AddSingleton<IFeaturesAgent, FeaturesAgent>();
 
             // register Liquid post render template handler
-            services.AddSingleton<IPostRenderTemplateChange, PostRenderTemplateChanger>();
+            services.AddSingleton<IPostRenderTemplateChange, PostRenderTemplateChanger>(serviceProvider => {
+                var workContextAccessor = serviceProvider.GetService<IWorkContextAccessor>();
+                return new PostRenderTemplateChanger(workContextAccessor);
+            });
 
             //Cache
             var redisConnectionString = Configuration.GetConnectionString("RedisConnectionString");
