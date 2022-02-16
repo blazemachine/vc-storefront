@@ -1,14 +1,20 @@
 using System.Collections.Generic;
 using VirtoCommerce.LiquidThemeEngine.PostRenderTemplateChange.Operations;
+using VirtoCommerce.Storefront.Model;
 
 namespace VirtoCommerce.LiquidThemeEngine.PostRenderTemplateChange
 {
     public class PostRenderTemplateChanger : IPostRenderTemplateChange
     {
-        private readonly IList<IPostRenderTemplateChangeOperation> _operations = new[]
+        private readonly IList<IPostRenderTemplateChangeOperation> _operations;
+
+        public PostRenderTemplateChanger(IWorkContextAccessor workContextAccessor)
         {
-            new ExternalLinksPostRenderTemplateOperation()
-        };
+            _operations = new[]
+            {
+                new ExternalLinksPostRenderTemplateOperation(workContextAccessor)
+            };
+        }
 
         public IList<IPostRenderTemplateChangeOperation> Operations => _operations;
 
